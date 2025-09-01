@@ -3,18 +3,16 @@ package com.vvvtimes.server;
 import com.vvvtimes.JrebelUtil.JrebelSign;
 import com.vvvtimes.util.rsasign;
 import net.sf.json.JSONObject;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class MainServer extends AbstractHandler {
 
@@ -57,7 +55,7 @@ public class MainServer extends AbstractHandler {
         System.out.println("License Server started at http://localhost:" + port);
         System.out.println("JetBrains Activation address was: http://localhost:" + port + "/");
         System.out.println("JRebel 7.1 and earlier version Activation address was: http://localhost:" + port + "/{tokenname}, with any email.");
-        System.out.println("JRebel 2018.1 and later version Activation address was: http://localhost:" + port + "/{guid}(eg:http://localhost:" + port + "/" + UUID.randomUUID().toString() + "), with any email.");
+        System.out.println("JRebel 2018.1 and later version Activation address was: http://localhost:" + port + "/{guid}(eg:http://localhost:" + port + "/" + UUID.randomUUID() + "), with any email.");
 
         server.join();
     }
@@ -164,7 +162,7 @@ public class MainServer extends AbstractHandler {
                 "    \"serverRandomness\": \"H2ulzLlh7E0=\",\n" +
                 "    \"seatPoolType\": \"standalone\",\n" +
                 "    \"statusCode\": \"SUCCESS\",\n" +
-                "    \"offline\": " + String.valueOf(offline) + ",\n" +
+                "    \"offline\": " + offline + ",\n" +
                 "    \"validFrom\": " + validFrom + ",\n" +
                 "    \"validUntil\": " + validUntil + ",\n" +
                 "    \"company\": \"Administrator\",\n" +
@@ -249,37 +247,33 @@ public class MainServer extends AbstractHandler {
         baseRequest.setHandled(true);
 
         // 拼接服务器地址
-        String licenseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        String port = request.getHeader("X-Forwarded-Port");
+        String licenseUrl = request.getScheme() + "://" + request.getServerName() + ":" + (port != null ? Integer.parseInt(port) : request.getServerPort());
 
-        StringBuffer html = new StringBuffer("<h3>使用说明（Instructions for use）</h3>");
-
-        html.append("<hr/>");
-
-        html.append("<h1>Hello,This is a Jrebel & JetBrains License Server!</h1>");
-        html.append("<p>License Server started at ").append(licenseUrl);
-        html.append("<p>JetBrains Activation address was: <span style='color:red'>").append(licenseUrl).append("/");
-        html.append("<p>JRebel 7.1 and earlier version Activation address was: <span style='color:red'>")
-                .append(licenseUrl).append("/{tokenname}")
-                .append("</span>, with any email.");
-        html.append("<p>JRebel 2018.1 and later version Activation address was: ")
-                .append(licenseUrl).append("/{guid}")
-                .append("(eg:<span style='color:red'>")
-                .append(licenseUrl).append("/").append(UUID.randomUUID().toString())
-                .append("</span>), with any email.");
-
-        html.append("<hr/>");
-
-        html.append("<h1>Hello，此地址是 Jrebel & JetBrains License Server!</h1>");
-        html.append("<p>JetBrains许可服务器激活地址 ").append(licenseUrl);
-        html.append("<p>JetBrains激活地址是: <span style='color:red'>").append(licenseUrl).append("/");
-        html.append("<p>JRebel 7.1 及旧版本激活地址: <span style='color:red'>")
-                .append(licenseUrl).append("/{tokenname}")
-                .append("</span>, 以及任意邮箱地址。");
-        html.append("<p>JRebel 2018.1+ 版本激活地址: ")
-                .append(licenseUrl).append("/{guid}")
-                .append("(例如：<span style='color:red'>")
-                .append(licenseUrl).append("/").append(UUID.randomUUID().toString())
-                .append("</span>), 以及任意邮箱地址。");
+        String html = "<h3>使用说明（Instructions for use）</h3>" + "<hr/>" +
+                "<h1>Hello,This is a Jrebel & JetBrains License Server!</h1>" +
+                "<p>License Server started at " + licenseUrl +
+                "<p>JetBrains Activation address was: <span style='color:red'>" + licenseUrl + "/" +
+                "<p>JRebel 7.1 and earlier version Activation address was: <span style='color:red'>" +
+                licenseUrl + "/{tokenname}" +
+                "</span>, with any email." +
+                "<p>JRebel 2018.1 and later version Activation address was: " +
+                licenseUrl + "/{guid}" +
+                "(eg:<span style='color:red'>" +
+                licenseUrl + "/" + UUID.randomUUID() +
+                "</span>), with any email." +
+                "<hr/>" +
+                "<h1>Hello，此地址是 Jrebel & JetBrains License Server!</h1>" +
+                "<p>JetBrains许可服务器激活地址 " + licenseUrl +
+                "<p>JetBrains激活地址是: <span style='color:red'>" + licenseUrl + "/" +
+                "<p>JRebel 7.1 及旧版本激活地址: <span style='color:red'>" +
+                licenseUrl + "/{tokenname}" +
+                "</span>, 以及任意邮箱地址。" +
+                "<p>JRebel 2018.1+ 版本激活地址: " +
+                licenseUrl + "/{guid}" +
+                "(例如：<span style='color:red'>" +
+                licenseUrl + "/" + UUID.randomUUID() +
+                "</span>), 以及任意邮箱地址。";
 
         response.getWriter().println(html);
     }
