@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM eclipse-temurin:8u412-b08-jre-alpine
 
 ENV PORT 8081
 
